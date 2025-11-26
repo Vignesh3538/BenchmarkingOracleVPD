@@ -95,4 +95,11 @@ CREATE INDEX idx_ps_suppkey_partkey
 CREATE INDEX idx_ps_partkey_supplycost
     ON SYSTEM.PARTSUPP(ps_partkey, ps_supplycost);
 
+git init
+git remote add origin https://github.com/Vignesh3538/BenchmarkingOracleVPD.git
+git add .
+git commit -m "Date"
+git branch -M main
+git push origin main --force
+
 
