@@ -20,10 +20,10 @@ END;
 BEGIN
   DBMS_RLS.ADD_POLICY(
     object_schema   => 'SYSTEM',
-    object_name     => 'PART',
-    policy_name     => 'PART_P2',
+    object_name     => 'LINEITEM',
+    policy_name     => 'LINEITEM_P1',
     function_schema => 'SYSTEM', -- User enforcing this policy
-    policy_function => 'PART_POLICY_FN2',
+    policy_function => 'LINEITEM_POLICY_FN1',
     policy_type     => dbms_rls.CONTEXT_SENSITIVE,
     statement_types => 'SELECT'
   );
@@ -34,9 +34,9 @@ END;
 BEGIN
   DBMS_RLS.ENABLE_POLICY(
     object_schema => 'SYSTEM',
-    object_name   => 'PART',
-    policy_name   => 'PART_P2',
-    enable        =>FALSE
+    object_name   => 'LINEITEM',
+    policy_name   => 'LINEITEM_P1',
+    enable        =>TRUE
   );
 END;
 /
@@ -45,8 +45,8 @@ END;
 BEGIN
   DBMS_RLS.DROP_POLICY(
     object_schema => 'SYSTEM',
-    object_name   => 'PART',
-    policy_name   => 'PART_P2'
+    object_name   => 'LINEITEM',
+    policy_name   => 'LINEITEM_P1'
   );
 END;
 /
@@ -331,6 +331,7 @@ END;
 /
 
 -- P16: Lineitem visible if supplier sold at least 20% of this part to customers in same region as Customer#000001111
+
 CREATE OR REPLACE FUNCTION SYSTEM.LINEITEM_POLICY_FN12 (
     schema_name IN VARCHAR2,
     table_name  IN VARCHAR2
@@ -343,33 +344,35 @@ BEGIN
 
     IF v_role = 'TPCH_END_USERS' THEN
         RETURN q'[
-           ( SELECT
-      (
-        (SELECT COUNT(*)
-         FROM SYSTEM.lineitem all_li
-           JOIN SYSTEM.orders   all_o ON all_li.l_orderkey = all_o.o_orderkey
-           JOIN SYSTEM.customer all_c ON all_o.o_custkey   = all_c.c_custkey
-           JOIN SYSTEM.nation   all_n ON all_c.c_nationkey = all_n.n_nationkey
-           JOIN SYSTEM.region   all_r ON all_n.n_regionkey = all_r.r_regionkey
-         WHERE all_li.l_suppkey = lineitem.l_suppkey
-           AND all_li.l_partkey  = lineitem.l_partkey
-           AND all_r.r_regionkey = (
-             SELECT r2.r_regionkey
-             FROM SYSTEM.customer me
-               JOIN SYSTEM.nation n2 ON me.c_nationkey = n2.n_nationkey
-               JOIN SYSTEM.region r2 ON n2.n_regionkey = r2.r_regionkey
-             WHERE me.c_name = ''Customer#000001111''
-           )
-        ) /
-        (SELECT COUNT(*)
-         FROM SYSTEM.lineitem all2
-         WHERE all2.l_suppkey = lineitem.l_suppkey
-           AND all2.l_partkey  = lineitem.l_partkey
-        )
-      )
-    FROM dual
-  ) >= 1
-        ]';
+(
+    (
+        SELECT COUNT(*)
+        FROM SYSTEM.lineitem li
+        JOIN SYSTEM.orders   o ON li.l_orderkey = o.o_orderkey
+        JOIN SYSTEM.customer c ON o.o_custkey   = c.c_custkey
+        JOIN SYSTEM.nation   n ON c.c_nationkey = n.n_nationkey
+        JOIN SYSTEM.region   r ON n.n_regionkey = r.r_regionkey
+        WHERE li.l_suppkey = lineitem.l_suppkey
+          AND li.l_partkey = lineitem.l_partkey
+          AND r.r_regionkey = (
+                SELECT r2.r_regionkey
+                FROM SYSTEM.customer me
+                JOIN SYSTEM.nation n2 ON me.c_nationkey = n2.n_nationkey
+                JOIN SYSTEM.region r2 ON n2.n_regionkey = r2.r_regionkey
+                WHERE me.c_name = ''Customer#000001111''
+          )
+    )
+    >=
+    0.20 *
+    (
+        SELECT COUNT(*)
+        FROM SYSTEM.lineitem li2
+        WHERE li2.l_suppkey = lineitem.l_suppkey
+          AND li2.l_partkey = lineitem.l_partkey
+    )
+)
+]';
+
     ELSE
         RETURN NULL;
     END IF;
