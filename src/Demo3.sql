@@ -1,3 +1,4 @@
+-- Simultaneously switching on P12, 15, 17, 19
 CREATE INDEX idx_li_order ON system.lineitem(l_orderkey);
 CREATE INDEX idx_orders_cust_date ON system.orders(o_custkey, o_orderdate);
 CREATE INDEX idx_orders_cust_status ON system.orders(o_custkey, o_orderstatus);

@@ -1,5 +1,4 @@
-
-
+-- P16 / P2
 CREATE INDEX idx_customer_cust_nation 
 ON system.customer (c_custkey, c_nationkey);
 CREATE INDEX idx_customer_name_nation 
@@ -43,6 +42,11 @@ WHERE
     AND
     (
         (
+            li_outer.l_extendedprice * (1 - li_outer.l_discount)
+            BETWEEN 20000 AND 200000
+        )
+        OR
+        (
             (
                 SELECT COUNT(*)
                 FROM system.lineitem li_inner
@@ -69,11 +73,6 @@ WHERE
                   AND li2.l_partkey = li_outer.l_partkey
             )
         )
-        OR
-        (
-            li_outer.l_extendedprice * (1 - li_outer.l_discount)
-            BETWEEN 20000 AND 200000
-        )
     )
 GROUP BY
     n_outer.n_name
@@ -99,6 +98,11 @@ WHERE
     AND li_outer.l_shipdate < DATE '1995-09-01' + INTERVAL '1' MONTH
     AND (
         (
+            li_outer.l_extendedprice * (1 - li_outer.l_discount)
+            BETWEEN 20000 AND 200000
+        )
+        OR
+        (
             (
                 SELECT COUNT(*)
                 FROM system.lineitem li_inner
@@ -121,12 +125,7 @@ WHERE
                 WHERE li2.l_suppkey = li_outer.l_suppkey
                   AND li2.l_partkey = li_outer.l_partkey
             )
-        )
-        OR
-        (
-            li_outer.l_extendedprice * (1 - li_outer.l_discount)
-            BETWEEN 20000 AND 200000
-        )
+        )   
     );
 
 --Q21
@@ -160,6 +159,11 @@ WHERE
     AND n.n_name = 'SAUDI ARABIA'
     AND (
         (
+            l1.l_extendedprice * (1 - l1.l_discount)
+            BETWEEN 20000 AND 200000
+        )
+        OR
+        (
             (
                 SELECT COUNT(*)
                 FROM system.lineitem li_inner
@@ -182,11 +186,6 @@ WHERE
                 WHERE li2.l_suppkey = l1.l_suppkey
                   AND li2.l_partkey = l1.l_partkey
             )
-        )
-        OR
-        (
-            l1.l_extendedprice * (1 - l1.l_discount)
-            BETWEEN 20000 AND 200000
         )
     )
 GROUP BY

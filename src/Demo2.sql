@@ -1,3 +1,4 @@
+-- Simultaneously switching on P11, 13, 14, 18, 20 
 CREATE INDEX idx_li_order_supp ON system.lineitem(l_orderkey, l_suppkey);
 CREATE INDEX idx_o_custkey ON system.orders(o_custkey);
 CREATE INDEX idx_customer_cust_nation ON system.customer(c_custkey, c_nationkey);
