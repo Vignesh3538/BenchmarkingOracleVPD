@@ -1,11 +1,11 @@
 # <div align="center">**Evaluation of Oracle Virtual Private Database (VPD) Against Complex Access Control Policies**</div>
-
 <p align="center">
-  <img src="https://img.shields.io/badge/Query%20Language-SQL-blue?style=flat&logo=oracle&logoColor=white" />
+  <img src="https://img.shields.io/badge/Query%20Language-SQL-blue?style=flat" />
   <img src="https://img.shields.io/badge/Database-Oracle-red?style=flat&logo=oracle&logoColor=white" />
   <img src="https://img.shields.io/badge/Security-VPD%20(Row--Level%20Access%20Control)-orange?style=flat" />
   <img src="https://img.shields.io/badge/Benchmark-TPC--H-green?style=flat" />
 </p>
+
 
 ## **1. System Overview**
 
@@ -15,7 +15,7 @@ Oracle VPD dynamically appends security predicates to SQL queries in `where` cla
 
 ---
 ## **2. Loading TPC-H DB**
-*Location: `src/loader.py*
+*Location: `src/loader.py`*
 - Generates 1 GB TPC-H data using DuckDB's dbgen
 - Exports generated tables to Parquet files
 - Creates TPC-H tables in Oracle with correct PK/FK constraints
@@ -24,24 +24,24 @@ Oracle VPD dynamically appends security predicates to SQL queries in `where` cla
 ---
 
 ## **3. Test User Creation**
-*Location: `src/UserCreation.sql*
-- Creates a role TPCH_END_USERS with SELECT privileges on all TPC-H tables and ability to create views.
-- Creates a test user TPCH_USER with login privileges and assigns the TPCH_END_USERS role.
-- Creates a USER_ROLE_MAP table linking session users to their logical roles; application context TPCH_CTX is set at logon via trigger TPCH_LOGON_TRG.
-- Logon triggers automatically set role (TPCH_CTX) context for each session to enforce row-level VPD access.
+*Location: `src/UserCreation.sql`*
+- Creates a role `TPCH_END_USERS` with `SELECT` privileges on all TPC-H tables and ability to create views.
+- Creates a test user `TPCH_USER` with login privileges and assigns the `TPCH_END_USERS` role.
+- Creates a `USER_ROLE_MAP` table linking session users to their logical roles; application context `TPCH_CTX` is set at logon via trigger `TPCH_LOGON_TRG`.
+- Logon triggers automatically set context variable `ROLE` in `TPCH_CTX` context for each session to enforce row-level VPD access.
 
 ---
 
 ## **4. Test RLS policies**
-*Location: `src/Policies.sql*
+*Location: `src/Policies.sql`*
 - Each policy is implemented as a PL/SQL function returning a WHERE clause that constrains visible rows for a table based on the session context.
-- Policy functions dynamically inspect SYS_CONTEXT('TPCH_CTX','ROLE') to enforce restrictions specifically for TPCH_END_USERS while leaving other roles unrestricted.
-- Policies are registered using DBMS_RLS.ADD_POLICY with CONTEXT_SENSITIVE type, enabling predicate caching when SYS_CONTEXT remains same.
+- Policy functions dynamically inspect `SYS_CONTEXT('TPCH_CTX','ROLE')` to enforce restrictions specifically for `TPCH_END_USERS` while leaving other roles unrestricted.
+- Policies are registered using `DBMS_RLS.ADD_POLICY` with `CONTEXT_SENSITIVE` type, enabling predicate caching when `SYS_CONTEXT` remains same.
 ---
 
 ## 5. Analysis Methodology
 
-The analysis phase quantifies the computational cost of row-level security on a standardized TPC-H decision-support workload and `executed_plans` dir contains images of actual plans and overheads for TPC-H queries for the following analysis cases.
+The analysis phase quantifies the computational cost of row-level security on a standardized TPC-H decision-support workload and *`executed_plans`* dir contains images of actual plans and overheads for TPC-H queries for the following analysis cases.
 
 ### Baseline Measurement 
 To establish a performance ceiling, all 20 **TPC-H benchmark queries** are executed on the Oracle instance under the following conditions:
@@ -60,7 +60,7 @@ During query execution, the delta between theoretical and actual execution behav
 
 ### Complex Workload Impact
 The TPC-H queries are executed with active VPD policies to observe latency overhead. Key focus areas include:
-* **Join Reordering:** Whether the added predicates reorder or introduce new joins.
+* **Join Reordering and table scans:** Whether the added predicates reorder or introduce new joins and table scans.
 * **Predicate Pushdown:** Evaluation of whether the security filter is successfully pushed into subqueries or view definitions.
 * **Cardinality Misestimates:** Identifying if security predicates lead to suboptimal plan choices due to inaccurate row-count predictions.
 
