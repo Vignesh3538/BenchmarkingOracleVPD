@@ -60,7 +60,7 @@ During query execution, the delta between theoretical and actual execution behav
 
 ### Complex Workload Impact
 The TPC-H queries are executed with active VPD policies to observe latency overhead. Key focus areas include:
-* **Join Reordering:** Whether the added predicate reorder join.
+* **Join Reordering:** Whether the added predicates reorder or introduce new joins.
 * **Predicate Pushdown:** Evaluation of whether the security filter is successfully pushed into subqueries or view definitions.
 * **Cardinality Misestimates:** Identifying if security predicates lead to suboptimal plan choices due to inaccurate row-count predictions.
 
